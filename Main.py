@@ -27,6 +27,11 @@ class node:
     def __str__(self):
         return str(self.value)
 
+class circularNode:
+    def __init__(self, value = None, next = None):
+        self.value = value
+        self.next = next
+
 class list:
     def __init__(self):
         self.first = None
@@ -75,6 +80,31 @@ class list:
         
         return String
 
+class circularList:
+    def __init__(self):
+        self.first = None
+        self.size = 0
+
+    def append(self, value):
+        if self.first is None:
+            self.first = circularNode(value = value)
+            self.first.next = self.first    
+        else:
+            actual = circularNode(value = value, next = self.first.next)
+            self.first.next = actual
+            self.size += 1
+
+    def recorrer(self):
+        if self.first is None:
+            return
+        actual = self.first
+        while actual != None:
+            print(actual.value.num)
+            actual = actual.next
+            
+    def __len__(self):
+        return self.size
+        
 class machine:
     def __init__(self, lineNum, productionList, productList):
         self.lineNum = lineNum
@@ -82,10 +112,17 @@ class machine:
         self.productList = productList
 
 class productionLine:
-    def __init__(self, num, componentNum, time):
+    def __init__(self, num, componentNum, time, actComp):
         self.num = num
         self.componentNum = componentNum
         self.time = time
+        self.actComp = actComp
+
+    def setactComp(self, value):
+        self.actComp = value
+
+    def getactComp(self):
+        return self.actComp
 
 class product:
     def __init__(self, name, steps):
@@ -102,6 +139,12 @@ class stepPassed:
         self.line = line
         self.comp = comp
         self.boolean = boolean
+
+    def setBoolean(self, value):
+        self.boolean = value
+
+    def getBoolean(self):
+        return self.boolean
 
 alphaMachine = machine(0, "", "")
 alphaSimulation = simulation("", "")
@@ -120,7 +163,7 @@ def readMachine(ruta):
 
         lineNum = lowerRoot.getElementsByTagName("cantidadlineasproduccion")[0].firstChild.data
         
-        productionLines = list()
+        productionLines = circularList()
         production = lowerRoot.getElementsByTagName("listadolineasproduccion")[0]
         prodLineLen = len(production.getElementsByTagName("lineaproduccion")) 
         for num in range(prodLineLen):
@@ -128,7 +171,7 @@ def readMachine(ruta):
             number = prodLine.getElementsByTagName("numero")[0].firstChild.data
             components = prodLine.getElementsByTagName("cantidadcomponentes")[0].firstChild.data
             time = prodLine.getElementsByTagName("tiempoensamblaje")[0].firstChild.data
-            productionLines.append(productionLine(number, components, time))
+            productionLines.append(productionLine(number, components, time, 0))
             #print("Linea: " + str(number) + ", No.Componentes: " + str(components) + ", tiempo: " + str(time))
 
         products = list()    
@@ -197,7 +240,8 @@ def printProdLines():
     print("Cantidad de lineas de producción cargadas: " + str(alphaMachine.lineNum))
     print("\n")
     current = alphaMachine.productionList.first
-    while current != None:
+    currentFirst = alphaMachine.productionList.first
+    while current.next != currentFirst:
         print("\tNúmero de linea: " + str(current.value.num))
         print("\tCantidad de componentes: " + str(current.value.componentNum))
         print("\tTiempo de ensamblaje: " + str(current.value.time))
@@ -233,7 +277,7 @@ def printProducts():
         current = current.next
     print("\n")
 
-def simulationLive():
+def simulationlineCurrent():
     global alphaSimulation
     current = alphaSimulation.products.first
     print("Productos cargados para simulación: ")
@@ -241,15 +285,14 @@ def simulationLive():
         print("\t- " + str(current.value))
         current = current.next
     print("\n")
-    #prod = input("Seleccione un producto para empezar la simulación: ")
-    prod = "guitarra"
+    prod = input("Seleccione un producto para empezar la simulación: ")
     global alphaMachine
     current2 = alphaMachine.productList.first
     while current2 != None:
-        if current2.value.name == prod:
-            print("Encontrado")
-            print("\n")
-
+        tempName = str(current2.value.name)
+        Encontrado = False
+        if tempName.lower() == prod.lower():
+            Encontrado = True
             print("Procedimiento de ensamblaje: " + str(current2.value.steps))
             contLine = 0
             contComp = 0
@@ -258,27 +301,174 @@ def simulationLive():
             current3 = current2.value.steps.first
             matches = list()
             while current3 != None:
+                #current3 = "L2pC3p" 
                 stringStep = str(current3.value)
                 regex = "[0-9]+"
                 m = re.findall(regex, stringStep)
                 matches.append(stepPassed(m[0], m[1], False))
                 current3 = current3.next
 
-            currentStep = matches.first 
-            while currentStep != None:
+            lineCurrent = alphaMachine.productionList.first
+            lineSeconds = alphaMachine.productionList.first
+            lineSeconds2 = alphaMachine.productionList.first
+            contSec = 1
+            while lineSeconds.next != lineSeconds2:
+                contSec += 1
+                lineSeconds = lineSeconds.next
 
-                stepLine = currentStep.value.line
-                stepComp = currentStep.value.comp
+            contBool = 1
+            clock = 1
+            secLoop = int(alphaMachine.lineNum)
+            Assembly = False
+            linePass = 0
+            alphaCont = 0
+            whileBreak = 0
+            while lineCurrent != None:
+                #if whileBreak == 12:
+                #    break
+                #whileBreak += 1
+                if secLoop == contSec:
+                    print("------ Segundo " + str(contBool) + " ------")
+                    secLoop = 0
+                    alphaCont = 0
+                    contBool += 1
+                secLoop += 1
+                #if contBool == 6:
+                #    break
+                lineNum = lineCurrent.value.num
+                actComp = lineCurrent.value.getactComp()
+                timeCont = lineCurrent.value.time
+                timeAssembling = int(timeCont)
+                if actComp == 0:
+                    actComp += 1
+                    lineCurrent.value.setactComp(actComp)
+                    print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()))
+                    lineCurrent = lineCurrent.next
+                    continue
+
+                #print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()))
+                currentStep = matches.first # [1, 1], [2, 2], [1, 3]
+                booleanTrue = matches.first # [1, 1], [2, 2], [1, 3]
+                contActions = 0
+                contOrder = 0
+                while currentStep != None:
+                    stepBoolean = currentStep.value.getBoolean()
+                    if stepBoolean == False:
+                        contOrder += 1
+                    stepLine = currentStep.value.line
+                    if int(stepLine) == int(lineNum):
+                        if stepBoolean == False:
+                            stepComp = currentStep.value.comp
+                            if int(stepComp) > int(actComp):
+                                actComp += 1
+                                lineCurrent.value.setactComp(actComp)
+                                print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()))
+                                contActions += 1
+                                break
+                            elif int(stepComp) < int(actComp):
+                                actComp -= 1
+                                lineCurrent.value.setactComp(actComp)
+                                print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()))
+                                contActions += 1
+                                break
+                            else:
+                                if contOrder > 1:
+                                    contActions = 0
+                                    break
+                                else:
+                                    if Assembly == False:
+                                        if alphaCont == 0:
+                                            linePass = lineNum
+                                            Assembly = True
+                                            print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
+                                            contActions += 1
+                                            clock += 1
+                                            break
+                                        else:
+                                            contActions = 0
+                                            break
+
+                                    elif linePass == lineNum:
+                                        if clock == timeAssembling:
+                                            clock = 1
+                                            currentStep.value.setBoolean(True)
+                                            Assembly = False
+                                            alphaCont += 1
+                                            print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
+                                            contActions += 1
+                                            break
+                                        else:
+                                            clock += 1
+                                            Assembly = True
+                                            alphaCont += 1
+                                            print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
+                                            contActions += 1
+                                            break
+                                    else:
+                                        contActions = 0
+                                        break
+                        else:
+                            currentStep = currentStep.next
+                    else:
+                        currentStep = currentStep.next
+                
+                if contActions == 0:
+                    print("Brazo número " + str(lineNum) + " no hace nada")
+
+                contUltimate = 0
+                while booleanTrue != None:
+                    stepBoolean = booleanTrue.value.getBoolean()
+                    #print("stepLine2: " + str(stepLine2) + ", stepBoolean: " + str(stepBoolean) + ", contUltimate: " + str(contUltimate))
+                    if stepBoolean == False:
+                        contUltimate += 1
+                    booleanTrue = booleanTrue.next
+                    
+                if contUltimate == 0:
+                    if secLoop == contSec:
+                        print("\n")
+                        print("Simulación terminada")
+                        print("\n")
+                        break
+                lineCurrent = lineCurrent.next
+
+            """
+            while lineCurrent != None:
+                compCont = 0
+                lineNum = lineCurrent.value.num
+                actComp = lineCurrent.value.actComp
+
+                if actComp == 0:
+                    actComp += 1
+                    lineCurrent.value.actComp = actComp
+                lineCurrent = lineCurrent.next
+            """
+            
+            #alphaMachine.productionList.recorrer()
+            #while contBool != 3:
+            """
+            currentStep = matches.first # [1, 1], [2, 2], [1, 3]
+            while currentStep != None:
                 stepBoolean = currentStep.value.boolean
+                if stepBoolean == False:
+                    contBool += 1
+
+                    stepLine = currentStep.value.line
+                    stepComp = currentStep.value.comp
+
 
 
             current2 = alphaMachine.productionList.first
             while current2 != None:
                 print("Brazo número " + str(current2.value.num) + " en componente 1")
                 current2 = current2.next
+            """
             break
         else:
             current2 = current2.next
+    if Encontrado == False:
+        print("\n")
+        print("Producto no encontrado")
+        print("\n")
 
 def graphicBrowser():
     win = Tk()
@@ -311,7 +501,7 @@ while Ejecucion:
         printProducts()
     
     elif opcion == "5":
-        simulationLive()
+        simulationlineCurrent()
 
     elif opcion == "9":
         print("Has salido del programa")
