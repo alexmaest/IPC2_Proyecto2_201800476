@@ -2,22 +2,28 @@ import xml.etree.cElementTree as ET
 from xml.dom import minidom
 from tkinter import filedialog
 from tkinter import *
+from allReport import allReport
+from singleReport import singleReport
+from timeReport import timeReport
 import re
 
 def menu():
-    print("****************************************")
-    print("*            Menú Principal            *")
-    print("****************************************")
-    print("* 1) Cargar archivo de maquina         *")
-    print("* 2) Cargar archivo de simulación      *")
-    print("* 3) Mostrar Lineas de producción      *")
-    print("* 4) Mostrar productos                 *")
-    print("* 5) Simulación de un producto         *")
-    print("* 6) Simulación de todos los productos *")
-    print("* 7) Archivo de salida xml             *")
-    print("* 8) -------------                     *")
-    print("* 9) Salir                             *")
-    print("****************************************")
+    print("****************************************************")
+    print("*                  Menú Principal                  *")
+    print("****************************************************")
+    print("*  1) Cargar archivo de maquina                    *")
+    print("*  2) Cargar archivo de simulación                 *")
+    print("*  3) Mostrar Lineas de producción                 *")
+    print("*  4) Mostrar productos                            *")
+    print("*  5) Simulación de un producto                    *")
+    print("*  6) Simulación de todos los productos            *")
+    print("*  7) Archivo de salida de un producto XML         *")
+    print("*  8) Archivo de salida de todos los productos XML *")
+    print("*  9) Reporte de un producto                       *")
+    print("* 10) Reporte de todos los productos               *")
+    print("* 11) Reporte de un producto en un tiempo t        *")
+    print("* 12) Salir                                        *")
+    print("****************************************************")
 
 class node:
     def __init__(self, value):
@@ -164,7 +170,8 @@ class stepPassed:
 
 alphaMachine = machine(0, "", "")
 alphaSimulation = simulation("", "")
-saveSimulation = simulation("", "")
+saveSingleSimulation = simulation("", "")
+saveCompleteSimulation = simulation("", "")
 
 def lowerTree(tree):
     t = ET.tostring(tree)
@@ -495,8 +502,8 @@ def singleSimulation():
         print("\n")
     else:
         saveProducts.agregar(exitProducts(tempName,contBool - 1,elaborationProd))
-        global saveSimulation
-        saveSimulation = simulation(alphaSimulation.name, saveProducts)
+        global saveSingleSimulation
+        saveSingleSimulation = simulation(alphaSimulation.name, saveProducts)
 
 def completeSimulation():
     global alphaSimulation
@@ -701,8 +708,8 @@ def completeSimulation():
             print("\n")
         else:
             saveProducts.agregar(exitProducts(tempName,contBool - 1,elaborationProd))
-            global saveSimulation
-            saveSimulation = simulation(alphaSimulation.name, saveProducts)
+            global saveCompleteSimulation
+            saveCompleteSimulation = simulation(alphaSimulation.name, saveProducts)
 
         alphacurrent = alphacurrent.next
 
@@ -714,38 +721,83 @@ def graphicBrowser():
     win.destroy()
     return filename
 
-def createDoc():
-    simName = saveSimulation.name
-    simProd = saveSimulation.products.first
+def createDoc(selection):
+    if selection == 1:
+        nameinput = input("Ingrese el nombre del producto para generar el archivo: ")
+        simName = saveCompleteSimulation.name
+        simProd = saveCompleteSimulation.products.first
+        tempName = str(simProd.value.name)
+        Encontrado = False
+        if nameinput.lower() == tempName.lower():
+            Encontrado = True
+            try:
+                salida = ET.Element("SalidaSimulacion")
+                nameSimulation = ET.SubElement(salida, "Nombre").text = str(simName)
+                productList = ET.SubElement(salida, "ListadoProductos")
+                while simProd != None:
+                    product = ET.SubElement(productList, "Producto")
+                    nameProd = ET.SubElement(product, "Nombre").text = str(simProd.value.name)
+                    timeProd = ET.SubElement(product, "TiempoTotal").text = str(simProd.value.totalTime)
+                    elabProd = ET.SubElement(product, "ElaboracionOptima")
+                    elab = simProd.value.elaboration.first
+                    while elab != None:
+                        timeProd = ET.SubElement(elabProd, "Tiempo", NoSegundo = str(elab.value.secNum))
+                        currentList = elab.value.stepList.first
+                        while currentList != None:
+                            timeProd = ET.SubElement(elabProd, "LineaEnsamblaje", NoLinea = str(currentList.value.lineNum)).text = str(currentList.value.action)
+                            currentList = currentList.next
+                        elab = elab.next
+                    break
 
-    try:
-        salida = ET.Element("SalidaSimulacion")
-        nameSimulation = ET.SubElement(salida, "Nombre").text = str(simName)
-        productList = ET.SubElement(salida, "ListadoProductos")
-        while simProd != None:
-            product = ET.SubElement(productList, "Producto")
-            nameProd = ET.SubElement(product, "Nombre").text = str(simProd.value.name)
-            timeProd = ET.SubElement(product, "TiempoTotal").text = str(simProd.value.totalTime)
-            elabProd = ET.SubElement(product, "ElaboracionOptima")
-            elab = simProd.value.elaboration.first
-            while elab != None:
-                timeProd = ET.SubElement(elabProd, "Tiempo", NoSegundo = str(elab.value.secNum))
-                currentList = elab.value.stepList.first
-                while currentList != None:
-                    timeProd = ET.SubElement(elabProd, "LineaEnsamblaje", NoLinea = str(currentList.value.lineNum)).text = str(currentList.value.action)
-                    currentList = currentList.next
-                elab = elab.next
+                archivo = ET.ElementTree(salida)
+                archivo.write("reportes/simulaciones/xml/" + str(tempName) + "salida.xml")
+                print("\n")
+                print("Archivo creado con exito")
+                print("\n")
+            except:
+                print("\n")
+                print("Ha ocurrido un error al crear el archivo, intentelo de nuevo")
+                print("\n")
+        else:
             simProd = simProd.next
 
-        archivo = ET.ElementTree(salida)
-        archivo.write("reportes\simulaciones" + str(simName) + "\salida.xml")
-        print("\n")
-        print("Archivo creado con exito")
-        print("\n")
-    except:
-        print("\n")
-        print("Ha ocurrido un error al crear el archivo, intentelo de nuevo")
-        print("\n")
+        if Encontrado == False:
+            print("\n")
+            print("Producto no encontrado")
+            print("\n")
+
+    else:
+        simName = saveCompleteSimulation.name
+        simProd = saveCompleteSimulation.products.first
+
+        try:
+            salida = ET.Element("SalidaSimulacion")
+            nameSimulation = ET.SubElement(salida, "Nombre").text = str(simName)
+            productList = ET.SubElement(salida, "ListadoProductos")
+            while simProd != None:
+                product = ET.SubElement(productList, "Producto")
+                nameProd = ET.SubElement(product, "Nombre").text = str(simProd.value.name)
+                timeProd = ET.SubElement(product, "TiempoTotal").text = str(simProd.value.totalTime)
+                elabProd = ET.SubElement(product, "ElaboracionOptima")
+                elab = simProd.value.elaboration.first
+                while elab != None:
+                    timeProd = ET.SubElement(elabProd, "Tiempo", NoSegundo = str(elab.value.secNum))
+                    currentList = elab.value.stepList.first
+                    while currentList != None:
+                        timeProd = ET.SubElement(elabProd, "LineaEnsamblaje", NoLinea = str(currentList.value.lineNum)).text = str(currentList.value.action)
+                        currentList = currentList.next
+                    elab = elab.next
+                simProd = simProd.next
+
+            archivo = ET.ElementTree(salida)
+            archivo.write("reportes/simulaciones/xml/" + str(simName) + "salida.xml")
+            print("\n")
+            print("Archivo creado con exito")
+            print("\n")
+        except:
+            print("\n")
+            print("Ha ocurrido un error al crear el archivo, intentelo de nuevo")
+            print("\n")
 
 Ejecucion = True
 while Ejecucion:
@@ -776,9 +828,24 @@ while Ejecucion:
         completeSimulation()
     
     elif opcion == "7":
-        createDoc()
-
+        createDoc(1)
+    
+    elif opcion == "8":
+        createDoc(2)
+    
     elif opcion == "9":
+        lineNum = int(alphaMachine.lineNum)
+        singleReport(lineNum, saveCompleteSimulation)
+
+    elif opcion == "10":
+        lineNum = int(alphaMachine.lineNum)
+        allReport(lineNum, saveCompleteSimulation)
+    
+    elif opcion == "11":
+        lineNum = int(alphaMachine.lineNum)
+        timeReport(lineNum, saveCompleteSimulation)
+
+    elif opcion == "12":
         print("Has salido del programa")
         Ejecucion = False
 
