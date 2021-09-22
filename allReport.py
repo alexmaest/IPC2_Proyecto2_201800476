@@ -1,3 +1,4 @@
+from tkinter import messagebox
 class allReport:
     def __init__(self, lineNum, simulation):
         self.lineNum = lineNum
@@ -143,3 +144,5 @@ class allReport:
         print("\n")
         print("Reporte creado con exito")
         print("\n")
+        messagebox.showinfo("Información","Reporte creado con exito")
+        
