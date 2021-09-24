@@ -1,5 +1,6 @@
 import xml.etree.cElementTree as ET
 from xml.dom import minidom
+import graphviz
 from tkinter import *
 import tkinter as t
 from tkinter import ttk
@@ -9,7 +10,6 @@ from allReport import allReport
 from singleReport import singleReport
 from timeReport import timeReport
 from PIL import Image, ImageTk
-import time
 import re
 
 def menu():
@@ -173,11 +173,24 @@ class stepPassed:
     def getBoolean(self):
         return self.boolean
 
+class listObjectG:
+    def __init__(self, product, objects):
+        self.product = product
+        self.objects = objects
+
+class objectG:
+    def __init__(self, second, steps):
+        self.second = second
+        self.steps = steps
+
 alphaMachine = machine(0, "", "")
 alphaSimulation = simulation("", "")
 saveSingleSimulation = simulation("", "")
 saveCompleteSimulation = simulation("", "")
+reportGraph = list()
+#valores = Guardar los productos cargados en un combobox
 valores = []
+#segundos = Guardar los segundos correspondientes de un producto especifico en un combobox para reportes
 segundos = []
 
 def lowerTree(tree):
@@ -515,6 +528,8 @@ def singleSimulation():
 def completeSimulation():
     global alphaSimulation
     saveProducts = list()
+    global reportGraph
+    reportGraph = list()
     current = alphaSimulation.products.first
     alphacurrent = alphaSimulation.products.first
     print("Nombre de la simulación: " + str(alphaSimulation.name))
@@ -573,6 +588,7 @@ def completeSimulation():
                 alphaCont = 0
                 whileBreak = 0
                 addCont = 0
+                reportG = list()
                 while lineCurrent != None:
                     #if whileBreak == 12:
                     #    break
@@ -601,6 +617,17 @@ def completeSimulation():
                         lineCurrent = lineCurrent.next
                         if addCont == contSec:
                             elaborationProd.agregar(elaboration(contBool - 1, stepList))
+                            print("contBool - 1 = " + str(contBool - 1))
+                            gCurrent2 = matches.first
+                            temp = list()
+                            while gCurrent2 != None:
+                                gstepBoolean = gCurrent2.value.boolean
+                                gstepLine = gCurrent2.value.line
+                                gstepComp = gCurrent2.value.comp
+                                print("Linea=" + str(gstepLine) + ", Comp=" + str(gstepComp) + ", Booleano=" + str(gstepBoolean))
+                                temp.agregar(stepPassed(gstepLine, gstepComp, gstepBoolean))
+                                gCurrent2 = gCurrent2.next
+                            reportG.agregar(objectG(contBool - 1, temp))
                             addCont = 0
                         continue
 
@@ -695,10 +722,22 @@ def completeSimulation():
 
                     if addCont == contSec:
                         elaborationProd.agregar(elaboration(contBool - 1, stepList))
+                        print("contBool - 1 = " + str(contBool - 1))
+                        gCurrent = matches.first
+                        temp = list()
+                        while gCurrent != None:
+                            gstepBoolean = gCurrent.value.boolean
+                            gstepLine = gCurrent.value.line
+                            gstepComp = gCurrent.value.comp
+                            print("Linea=" + str(gstepLine) + ", Comp=" + str(gstepComp) + ", Booleano=" + str(gstepBoolean))
+                            temp.agregar(stepPassed(gstepLine, gstepComp, gstepBoolean))
+                            gCurrent = gCurrent.next
+                        reportG.agregar(objectG(contBool - 1, temp))
                         addCont = 0
                         
                     if contUltimate == 0:
                         if secLoop == contSec:
+                            reportGraph.agregar(listObjectG(tempName, reportG))
                             print("\n")
                             print("Simulación terminada")
                             print("\n")
@@ -732,7 +771,6 @@ def singleXml():
     nameinput = str(xmlInOne.get())
     simName = saveCompleteSimulation.name
     alphaProd = saveCompleteSimulation.products.first
-    simProd = saveCompleteSimulation.products.first
     while alphaProd != None:
         tempName = str(alphaProd.value.name)
         Encontrado = False
@@ -742,12 +780,12 @@ def singleXml():
                 salida = ET.Element("SalidaSimulacion")
                 nameSimulation = ET.SubElement(salida, "Nombre").text = str(simName)
                 productList = ET.SubElement(salida, "ListadoProductos")
-                while simProd != None:
+                while alphaProd != None:
                     product = ET.SubElement(productList, "Producto")
-                    nameProd = ET.SubElement(product, "Nombre").text = str(simProd.value.name)
-                    timeProd = ET.SubElement(product, "TiempoTotal").text = str(simProd.value.totalTime)
+                    nameProd = ET.SubElement(product, "Nombre").text = str(alphaProd.value.name)
+                    timeProd = ET.SubElement(product, "TiempoTotal").text = str(alphaProd.value.totalTime)
                     elabProd = ET.SubElement(product, "ElaboracionOptima")
-                    elab = simProd.value.elaboration.first
+                    elab = alphaProd.value.elaboration.first
                     while elab != None:
                         currentSec = ET.SubElement(elabProd, "Tiempo", NoSegundo = str(elab.value.secNum))
                         currentList = elab.value.stepList.first
@@ -830,6 +868,7 @@ def browserSimulation():
     ttk.Combobox(tab3, textvariable=htmlInOne, values=valores).place(x=55, y=190)
     ttk.Combobox(tab3, textvariable=xmlInOne, values=valores).place(x=325, y=190)
     ttk.Combobox(tab3, textvariable=htmlInTwo, width=25, values=valores).place(x=45, y=320)
+    ttk.Combobox(tab3, textvariable=graphInOne,width=25, values=valores).place(x=586, y=190)
     messagebox.showinfo("Información","Carga de simulación realizada correctamente")
 
 def simulationTable():
@@ -956,9 +995,9 @@ def updateData():
         else:
             mach = mach.next
     stepsClean = stepsText.replace("p", "")
-    t.Label(tab2, text=stepsClean, width=25, fg="#FFFFFF", bg ="#162742", font = "Helvetica 14 bold italic").place(x=200, y=90)
+    t.Label(tab2, text=stepsClean, width=25, fg="#fcba03", bg ="#010030", font = "Helvetica 14 bold italic").place(x=50, y=450)
 
-def updateSeconds():
+def updateSeconds1():
     nameinput = str(htmlInTwo.get())
     alphaProd = saveCompleteSimulation.products.first
     simProd = saveCompleteSimulation.products.first
@@ -977,6 +1016,125 @@ def updateSeconds():
         segundos.append(sec + 1)
     
     ttk.Combobox(tab3, width=2, textvariable=htmlInTwoSec, values=segundos).place(x=67, y=353)
+
+def updateSeconds2():
+    nameinput = str(graphInOne.get())
+    alphaProd = saveCompleteSimulation.products.first
+    simProd = saveCompleteSimulation.products.first
+    timeProd = 0
+    while alphaProd != None:
+        tempName = str(alphaProd.value.name)
+        if nameinput.lower() == tempName.lower():
+            timeProd = int(alphaProd.value.totalTime)
+            break
+        else:
+            alphaProd = alphaProd.next
+
+    global segundos
+    segundos = []
+    for sec in range(timeProd):
+        segundos.append(sec + 1)
+    
+    ttk.Combobox(tab3, width=2, textvariable=graphInOneSec, values=segundos).place(x=610, y=223)
+
+def graphvizReport(name, breakSecond):
+    global reportGraph
+    alphaCurrent = reportGraph.first
+    while alphaCurrent != None:
+        alphaName = alphaCurrent.value.product
+        print("alphaName= " + str(alphaName.lower()) + ", name= " + str(name.lower()))
+        if alphaName.lower() == name.lower():
+            print("Entra 1")
+            current = alphaCurrent.value.objects.first
+            while current != None:
+                secondG = current.value.second
+                print("breakSecond= " + str(breakSecond) + ", secondG= " + str(secondG))
+                if int(breakSecond) == int(secondG):
+                    print("Entra 2")
+                    g = graphviz.Digraph('G', filename= str(name) + str(breakSecond) + '.gv')
+                    g.attr(label=r'\n' + str(name.upper()) + '\nSegundo = ' + str(breakSecond) + '\nVerde = Ensamblado\nRojo = No ensamblado\n')
+                    currentStep = current.value.steps.first
+                    tempLine = 0
+                    tempComp = 0
+                    cont = 0
+                    cont2 = 0
+                    while currentStep != None:
+                        gstepBoolean = currentStep.value.boolean
+                        gstepLine = currentStep.value.line
+                        gstepComp = currentStep.value.comp
+                        print("Linea=" + str(gstepLine) + ", Comp=" + str(gstepComp) + ", Booleano=" + str(gstepBoolean))
+                        if currentStep.next != None:
+                            
+                            if bool(gstepBoolean) == True:
+                                #0,0 - 1,1 - 0,2 - 1,1 - 0,2 - 1,1 - 0,2 - 1,1 - 0,2
+                                if cont == 1:
+                                    g.attr('node', shape='box', style='filled', color='green')
+                                    g.edge('L' + str(tempLine) + 'C' + str(tempComp), 'L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                                    tempLine = currentStep.value.line
+                                    tempComp = currentStep.value.comp
+                                    cont2 += 1
+                                    cont = 0
+                                elif cont2 == 2:
+                                    g.attr('node', shape='box', style='filled', color='green')
+                                    g.edge('L' + str(tempLine) + 'C' + str(tempComp), 'L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                                    tempLine = currentStep.value.line
+                                    tempComp = currentStep.value.comp
+                                    cont2 = 1
+                                else:
+                                    g.attr('node', shape='box', style='filled', color='green')
+                                    g.node('L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                                    tempLine = currentStep.value.line
+                                    tempComp = currentStep.value.comp
+                                    cont += 1
+                                    cont2 += 1
+                            else:
+                                if cont == 1:
+                                    g.attr('node', shape='box', style='filled', color='red')
+                                    g.edge('L' + str(tempLine) + 'C' + str(tempComp), 'L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                                    tempLine = currentStep.value.line
+                                    tempComp = currentStep.value.comp
+                                    cont = 0
+                                    cont2 += 1
+                                elif cont2 == 2:
+                                    g.attr('node', shape='box', style='filled', color='red')
+                                    g.edge('L' + str(tempLine) + 'C' + str(tempComp), 'L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                                    tempLine = currentStep.value.line
+                                    tempComp = currentStep.value.comp
+                                    cont2 = 1
+                                else:
+                                    g.attr('node', shape='box', style='filled', color='red')
+                                    g.node('L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                                    tempLine = currentStep.value.line
+                                    tempComp = currentStep.value.comp
+                                    cont += 1
+                                    cont2 += 1
+                        else:
+                            if bool(gstepBoolean) == True:
+                                g.attr('node', shape='box', style='filled', color='green')
+                                g.node('L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                                cont += 1
+                            else:
+                                g.attr('node', shape='box', style='filled', color='red')
+                                g.node('L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                                cont += 1
+                            
+                            g.edge('L' + str(tempLine) + 'C' + str(tempComp), 'L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
+                        currentStep = currentStep.next
+
+                    #g.attr(label=r'\n\nVerde = Ensamblado\nRojo = No ensamblado')
+                    g.view()
+                    break
+                else:
+                    current = current.next
+            break
+        else:
+            alphaCurrent = alphaCurrent.next
+
+def graphButton():
+    name = str(graphInOne.get())
+    second = int(graphInOneSec.get())
+    print("name: " + str(name) + ", second: " + str(second))
+    graphvizReport(name, second)
 
 v = t.Tk()
 v.geometry("800x600")
@@ -1010,7 +1168,6 @@ t.Label(tab2, text="Procesos", width=10, fg="#fcba03", bg = "#162742", font = "H
 data = t.StringVar(tab2)
 t.Button(tab2, width=1, text="⟳", font = "Helvetica 10 bold", bg='#fcba03', command=updateData).place(x=135, y=90)
 t.Label(tab2, text="Productos", width=20, fg="#fcba03", bg = "#162742", font = "Helvetica 12").place(x=-35, y=65)
-t.Label(tab2, text="Componentes necesarios", width=20, fg="#fcba03", bg = "#162742", font = "Helvetica 12").place(x=270, y=65)
 t.Label(tab2, width=107, height=26, bg = "#010030").place(x=20, y=130)
 t.Button(tab2, text="Iniciar simulación", width=15, font = "Arial 10", command=simulationTable).place(x=100, y=160)
 t.Label(tab2, text="Segundos:", width=10, fg="#FFFFFF", bg = "#010030", font = "Helvetica 12").place(x=600, y=420)
@@ -1020,6 +1177,7 @@ wrapper1.pack(fill="both",expand="yes", padx=100, pady=200)
 clockImage = Image.open("images/clock2.png")
 photo = ImageTk.PhotoImage(clockImage)
 clockLabel = Label(tab2, width=50, image=photo, bg = "#010030").place(x=560, y=442)
+t.Label(tab2, text="Componentes necesarios:", width=20, fg="#FFFFFF", bg ="#010030", font = "Helvetica 12").place(x=100, y=420)
 t.Label(tab2, text = "", width=130, height=20, bg = "dark gray").place(x=0, y=550)
 t.Label(tab2, text = "   2021 - Proyecto 2 de Introducción a la programación 2", fg="black", bg = "dark gray").place(x=0, y=550)
 
@@ -1039,7 +1197,7 @@ t.Label(tab3, text="t", width=5, fg="#fcba03", bg = "#010030", font = "Helvetica
 htmlInTwo = t.StringVar(tab3)
 htmlBTwo = t.Button(tab3, text="Generar", width=10, font = "Arial 10", command=timeHtmlReport).place(x=133, y=350)
 htmlInTwoSec = t.StringVar(tab3)
-t.Button(tab3, width=1, text="⟳", font = "Helvetica 10 bold", bg='#fcba03', command=updateSeconds).place(x=102, y=350)
+t.Button(tab3, width=1, text="⟳", font = "Helvetica 10 bold", bg='#fcba03', command=updateSeconds1).place(x=102, y=350)
 t.Label(tab3, text="Todos los productos", width=20, fg="#FFFFFF", bg = "#010030", font = "Helvetica 12").place(x=35, y=420)
 t.Button(tab3, text="Generar", width=10, font = "Arial 10", command=buttonAllReport).place(x=80, y=450)
 #XML
@@ -1051,9 +1209,12 @@ t.Label(tab3, text="Todos los productos", width=20, fg="#FFFFFF", bg = "#010030"
 t.Button(tab3, text="Generar", width=10, font = "Arial 10", command=allXml).place(x=350, y=320)
 #Graphviz
 t.Label(tab3, text="Graphviz", width=20, fg="#fcba03", bg = "#162742", font = "Helvetica 12").place(x=576, y=100)
-t.Label(tab3, text="Producto específico", width=20, fg="#FFFFFF", bg = "#010030", font = "Helvetica 12").place(x=576, y=160)
-ttk.Combobox(tab3, values=["January", "February","March","April"]).place(x=596, y=190)
-t.Button(tab3, text="Generar", width=10, font = "Arial 10").place(x=621, y=220)
+t.Label(tab3, text="Producto en un tiempo t", width=20, fg="#FFFFFF", bg = "#010030", font = "Helvetica 12").place(x=576, y=160)
+t.Label(tab3, text="t", width=5, fg="#fcba03", bg = "#010030", font = "Helvetica 12 bold italic").place(x=570, y=220)
+graphInOne = t.StringVar(tab3)
+graphInOneSec = t.StringVar(tab3)
+t.Button(tab3, width=1, text="⟳", font = "Helvetica 10 bold", bg='#fcba03', command=updateSeconds2).place(x=645, y=220)
+t.Button(tab3, text="Generar", width=10, font = "Arial 10", command=graphButton).place(x=675, y=220)
 t.Label(tab3, text = "", width=130, height=20, bg = "dark gray").place(x=0, y=550)
 t.Label(tab3, text = "   2021 - Proyecto 2 de Introducción a la programación 2", fg="black", bg = "dark gray").place(x=0, y=550)
 

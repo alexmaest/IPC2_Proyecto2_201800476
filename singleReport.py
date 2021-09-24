@@ -6,7 +6,6 @@ class singleReport:
         self.simulation = simulation
 
         alphaProd = simulation.products.first
-        simProd = simulation.products.first
         Encontrado = False
         while alphaProd != None:
             tempName = str(alphaProd.value.name)
@@ -79,9 +78,9 @@ class singleReport:
                     </div>
                     <!-- Banner Ends Here -->""")
 
-                while simProd != None:
-                    nameProd = str(simProd.value.name)
-                    timeProd = str(simProd.value.totalTime)
+                while alphaProd != None:
+                    nameProd = str(alphaProd.value.name)
+                    timeProd = str(alphaProd.value.totalTime)
 
                     html.write("""
                     <!-- Producto Starts Here -->
@@ -105,7 +104,7 @@ class singleReport:
                         </thead>
                         <tbody>""")
 
-                    elab = simProd.value.elaboration.first
+                    elab = alphaProd.value.elaboration.first
                     while elab != None:
                         timeProd = str(elab.value.secNum)
                         currentList = elab.value.stepList.first
@@ -124,7 +123,7 @@ class singleReport:
 
                     html.write("""</tbody>
                             </table>
-                            <h6 style="text-transform:uppercase; text-align: center; margin-top: 50px;">El producto """ + nameProd + """ se puede elaborar optimamente en """ + timeProd + """ segundos</h6>
+                            <h6 style="text-transform:uppercase; text-align: center; margin-top: 50px;">El producto """ + tempName + """ se puede elaborar optimamente en """ + timeProd + """ segundos</h6>
                         </div>
                         </div>
                     </div>

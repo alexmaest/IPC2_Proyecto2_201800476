@@ -6,7 +6,6 @@ class timeReport:
         self.numBreak = numBreak
         self.simulation = simulation
 
-        simProd = simulation.products.first
         alphaProd = simulation.products.first
         while alphaProd != None:
             tempName = str(alphaProd.value.name)
@@ -19,7 +18,7 @@ class timeReport:
                     Generar = False
                 Encontrado = True
                 if Generar == True:
-                    html = open("reportes/simulaciones/html/reporteProducto_" + tempName + ".html", "w")
+                    html = open("reportes/simulaciones/html/reporteTiempoProducto_" + tempName + str(numBreak) + ".html", "w")
                     html.write("""<!DOCTYPE html>
                     <html lang="en">
 
@@ -84,9 +83,9 @@ class timeReport:
                         </div>
                         <!-- Banner Ends Here -->""")
 
-                    while simProd != None:
-                        nameProd = str(simProd.value.name)
-                        timeProd = str(simProd.value.totalTime)
+                    while alphaProd != None:
+                        nameProd = str(alphaProd.value.name)
+                        timeProd = str(alphaProd.value.totalTime)
 
                         html.write("""
                         <!-- Producto Starts Here -->
@@ -110,7 +109,7 @@ class timeReport:
                             </thead>
                             <tbody>""")
 
-                        elab = simProd.value.elaboration.first
+                        elab = alphaProd.value.elaboration.first
                         while elab != None:
                             currentSec = str(elab.value.secNum)
                             currentList = elab.value.stepList.first
@@ -129,7 +128,7 @@ class timeReport:
 
                         html.write("""</tbody>
                                 </table>
-                                <h6 style="text-transform:uppercase; text-align: center; margin-top: 50px;">El producto """ + nameProd + """ se puede elaborar optimamente en """ + timeProd + """ segundos</h6>
+                                <h6 style="text-transform:uppercase; text-align: center; margin-top: 50px;">Proceso del producto """ + tempName + """ hasta el segundo """ + str(numBreak) + """</h6>
                             </div>
                             </div>
                         </div>
