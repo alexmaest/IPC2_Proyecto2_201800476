@@ -800,12 +800,10 @@ def graphvizReport(name, breakSecond):
     alphaCurrent = reportGraph.first
     while alphaCurrent != None:
         alphaName = alphaCurrent.value.product
-        print("alphaName= " + str(alphaName.lower()) + ", name= " + str(name.lower()))
         if alphaName.lower() == name.lower():
             current = alphaCurrent.value.objects.first
             while current != None:
                 secondG = current.value.second
-                print("breakSecond= " + str(breakSecond) + ", secondG= " + str(secondG))
                 if int(breakSecond) == int(secondG):
                     g = graphviz.Digraph('G', filename= 'reportes/cola/' + str(name) + str(breakSecond) + '.gv')
                     g.attr(label=r'\n' + str(name.upper()) + '\nSegundo = ' + str(breakSecond) + '\nVerde = Ensamblado\nRojo = No ensamblado\n')
