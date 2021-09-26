@@ -109,9 +109,10 @@ class circularList:
         if self.first is None:
             return
         actual = self.first
-        while actual != None:
-            print(actual.value.num)
+        print(actual.value.num)
+        while actual.next != self.first:
             actual = actual.next
+            print(actual.value.num)
             
     def __len__(self):
         return self.size
@@ -275,256 +276,6 @@ def stepsDetector(process):
         steps.agregar(step)
     return steps
 
-def printProdLines():
-    print("Maquina cargada:")
-    print("\n")
-
-    global alphaMachine
-    print("--------------- Lineas de producción ---------------")
-    print("Cantidad de lineas de producción cargadas: " + str(alphaMachine.lineNum))
-    print("\n")
-    current = alphaMachine.productionList.first
-    currentFirst = alphaMachine.productionList.first
-    while current.next != currentFirst:
-        print("\tNúmero de linea: " + str(current.value.num))
-        print("\tCantidad de componentes: " + str(current.value.componentNum))
-        print("\tTiempo de ensamblaje: " + str(current.value.time))
-        print("\n")
-        current = current.next
-    
-    print("--------------- Listado de productos ---------------")
-    current2 = alphaMachine.productList.first
-    current3 = alphaMachine.productList.first
-    cont = 0
-    while current2 != None:
-        cont += 1
-        current2 = current2.next
-    print("Cantidad de productos cargados: " + str(cont))
-    print("\n")
-    while current3 != None:
-        print("\tNombre del producto: " + str(current3.value.name))
-        print("\tElaboración: " + str(current3.value.steps))
-        print("\n")
-        current3 = current3.next
-    
-def printProducts():
-    print("Simulación cargada:")
-    print("\n")
-
-    global alphaSimulation
-    print("Nombre de la simulación: " + str(alphaSimulation.name))
-    print("\n")
-    print("--------------- Listado de productos ---------------")
-    current = alphaSimulation.products.first
-    while current != None:
-        print("\tNombre del producto: " + str(current.value))
-        current = current.next
-    print("\n")
-
-def singleSimulation():
-    global alphaSimulation
-    saveProducts = list()
-    current = alphaSimulation.products.first
-    print("Nombre de la simulación: " + str(alphaSimulation.name))
-    print("Productos cargados para simulación: ")
-    while current != None:
-        print("\t- " + str(current.value))
-        current = current.next
-    #print("\n")
-    prod = input("Seleccione un producto para empezar la simulación: ")
-    global alphaMachine
-    current2 = alphaMachine.productList.first
-    while current2 != None:
-        tempName = str(current2.value.name)
-        Encontrado = False
-        if tempName.lower() == prod.lower():
-            elaborationProd = list()
-            Encontrado = True
-            print("\n")
-            print("Procedimiento de ensamblaje: " + str(current2.value.steps))
-            print("\n")
-            contLine = 0
-            contComp = 0
-            
-            current3 = current2.value.steps.first
-            matches = list()
-            while current3 != None:
-                #current3 = "L2pC3p" 
-                stringStep = str(current3.value)
-                regex = "[0-9]+"
-                m = re.findall(regex, stringStep)
-                matches.agregar(stepPassed(m[0], m[1], False))
-                current3 = current3.next
-
-            lineCurrent = alphaMachine.productionList.first
-            lineSeconds = alphaMachine.productionList.first
-            lineSeconds2 = alphaMachine.productionList.first
-            secLoop = int(alphaMachine.lineNum)
-            resetCont = 0
-            reset = alphaMachine.productionList.first
-            while resetCont != secLoop:
-                resetComp = reset.value.setactComp(0)
-                resetCont += 1
-                reset = reset.next
-            
-            secLoop = 1
-            while lineSeconds.next != lineSeconds2:
-                secLoop += 1
-                lineSeconds = lineSeconds.next
-
-            contBool = 1
-            clock = 1
-            contSec = int(alphaMachine.lineNum)
-            Assembly = False
-            linePass = 0
-            alphaCont = 0
-            whileBreak = 0
-            addCont = 0
-            while lineCurrent != None:
-                #if whileBreak == 12:
-                #    break
-                #whileBreak += 1
-                action = ""
-                if secLoop == contSec:
-                    print("------ Segundo " + str(contBool) + " ------")
-                    stepList = list()
-                    secLoop = 0
-                    alphaCont = 0
-                    contBool += 1
-                secLoop += 1
-                addCont += 1
-                #if contBool == 6:
-                #    break
-                lineNum = lineCurrent.value.num
-                actComp = lineCurrent.value.getactComp()
-                timeCont = lineCurrent.value.time
-                timeAssembling = int(timeCont)
-                if actComp == 0:
-                    actComp += 1
-                    lineCurrent.value.setactComp(actComp)
-                    print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()))
-                    action = "Mover brazo - Componente " + str(lineCurrent.value.getactComp())
-                    stepList.agregar(assemblyLine(lineNum, action))
-                    lineCurrent = lineCurrent.next
-                    if addCont == contSec:
-                        elaborationProd.agregar(elaboration(contBool - 1, stepList))
-                        addCont = 0
-                    continue
-
-                #print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()))
-                currentStep = matches.first # [1, 1], [2, 2], [1, 3]
-                booleanTrue = matches.first # [1, 1], [2, 2], [1, 3]
-                contActions = 0
-                contOrder = 0
-                while currentStep != None:
-                    stepBoolean = currentStep.value.getBoolean()
-                    if stepBoolean == False:
-                        contOrder += 1
-                    stepLine = currentStep.value.line
-                    if int(stepLine) == int(lineNum):
-                        if stepBoolean == False:
-                            stepComp = currentStep.value.comp
-                            if int(stepComp) > int(actComp):
-                                actComp += 1
-                                lineCurrent.value.setactComp(actComp)
-                                print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()))
-                                action = "Mover brazo - Componente " + str(lineCurrent.value.getactComp())
-                                stepList.agregar(assemblyLine(lineNum, action))
-                                contActions += 1
-                                break
-                            elif int(stepComp) < int(actComp):
-                                actComp -= 1
-                                lineCurrent.value.setactComp(actComp)
-                                print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()))
-                                action = "Mover brazo - Componente " + str(lineCurrent.value.getactComp())
-                                stepList.agregar(assemblyLine(lineNum, action))
-                                contActions += 1
-                                break
-                            else:
-                                if contOrder > 1:
-                                    contActions = 0
-                                    break
-                                else:
-                                    if Assembly == False:
-                                        if alphaCont == 0:
-                                            linePass = lineNum
-                                            Assembly = True
-                                            print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
-                                            action = "Ensamblar - Componente " + str(lineCurrent.value.getactComp())
-                                            stepList.agregar(assemblyLine(lineNum, action))
-                                            contActions += 1
-                                            clock += 1
-                                            break
-                                        else:
-                                            contActions = 0
-                                            break
-
-                                    elif linePass == lineNum:
-                                        if clock == timeAssembling:
-                                            clock = 1
-                                            currentStep.value.setBoolean(True)
-                                            Assembly = False
-                                            alphaCont += 1
-                                            print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
-                                            action = "Ensamblar - Componente " + str(lineCurrent.value.getactComp())
-                                            stepList.agregar(assemblyLine(lineNum, action))
-                                            contActions += 1
-                                            break
-                                        else:
-                                            clock += 1
-                                            Assembly = True
-                                            alphaCont += 1
-                                            print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
-                                            action = "Ensamblar - Componente " + str(lineCurrent.value.getactComp())
-                                            stepList.agregar(assemblyLine(lineNum, action))
-                                            contActions += 1
-                                            break
-                                    else:
-                                        contActions = 0
-                                        break
-                        else:
-                            currentStep = currentStep.next
-                    else:
-                        currentStep = currentStep.next
-                
-                if contActions == 0:
-                    print("Brazo número " + str(lineNum) + " no hace nada")
-                    action = "No hace nada"
-                    stepList.agregar(assemblyLine(lineNum, action))
-
-                contUltimate = 0
-                while booleanTrue != None:
-                    stepBoolean = booleanTrue.value.getBoolean()
-                    #print("stepLine2: " + str(stepLine2) + ", stepBoolean: " + str(stepBoolean) + ", contUltimate: " + str(contUltimate))
-                    if stepBoolean == False:
-                        contUltimate += 1
-                    booleanTrue = booleanTrue.next
-
-                if addCont == contSec:
-                    elaborationProd.agregar(elaboration(contBool - 1, stepList))
-                    addCont = 0
-                    
-                if contUltimate == 0:
-                    if secLoop == contSec:
-                        print("\n")
-                        print("Simulación terminada")
-                        print("\n")
-                        break
-                lineCurrent = lineCurrent.next
-
-            break
-        else:
-            current2 = current2.next
-
-    if Encontrado == False:
-        print("\n")
-        print("Producto no encontrado")
-        print("\n")
-    else:
-        saveProducts.agregar(exitProducts(tempName,contBool - 1,elaborationProd))
-        global saveSingleSimulation
-        saveSingleSimulation = simulation(alphaSimulation.name, saveProducts)
-
 def completeSimulation():
     global alphaSimulation
     saveProducts = list()
@@ -590,7 +341,7 @@ def completeSimulation():
                 addCont = 0
                 reportG = list()
                 while lineCurrent != None:
-                    #if whileBreak == 12:
+                    #if whileBreak == 80:
                     #    break
                     #whileBreak += 1
                     action = ""
@@ -617,14 +368,14 @@ def completeSimulation():
                         lineCurrent = lineCurrent.next
                         if addCont == contSec:
                             elaborationProd.agregar(elaboration(contBool - 1, stepList))
-                            print("contBool - 1 = " + str(contBool - 1))
+                            #print("contBool - 1 = " + str(contBool - 1))
                             gCurrent2 = matches.first
                             temp = list()
                             while gCurrent2 != None:
                                 gstepBoolean = gCurrent2.value.boolean
                                 gstepLine = gCurrent2.value.line
                                 gstepComp = gCurrent2.value.comp
-                                print("Linea=" + str(gstepLine) + ", Comp=" + str(gstepComp) + ", Booleano=" + str(gstepBoolean))
+                                #print("Linea=" + str(gstepLine) + ", Comp=" + str(gstepComp) + ", Booleano=" + str(gstepBoolean))
                                 temp.agregar(stepPassed(gstepLine, gstepComp, gstepBoolean))
                                 gCurrent2 = gCurrent2.next
                             reportG.agregar(objectG(contBool - 1, temp))
@@ -667,14 +418,25 @@ def completeSimulation():
                                     else:
                                         if Assembly == False:
                                             if alphaCont == 0:
-                                                linePass = lineNum
-                                                Assembly = True
-                                                print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
-                                                action = "Ensamblar - Componente " + str(lineCurrent.value.getactComp())
-                                                stepList.agregar(assemblyLine(lineNum, action))
-                                                contActions += 1
-                                                clock += 1
-                                                break
+                                                if timeAssembling != 1:
+                                                    linePass = lineNum
+                                                    Assembly = True
+                                                    print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
+                                                    action = "Ensamblar - Componente " + str(lineCurrent.value.getactComp())
+                                                    stepList.agregar(assemblyLine(lineNum, action))
+                                                    contActions += 1
+                                                    clock += 1
+                                                    break
+                                                else:
+                                                    clock = 1
+                                                    currentStep.value.setBoolean(True)
+                                                    Assembly = False
+                                                    alphaCont += 1
+                                                    print("Brazo número " + str(lineNum) + " en componente " + str(lineCurrent.value.getactComp()) + " ensamblandolo")
+                                                    action = "Ensamblar - Componente " + str(lineCurrent.value.getactComp())
+                                                    stepList.agregar(assemblyLine(lineNum, action))
+                                                    contActions += 1
+                                                    break
                                             else:
                                                 contActions = 0
                                                 break
@@ -722,14 +484,14 @@ def completeSimulation():
 
                     if addCont == contSec:
                         elaborationProd.agregar(elaboration(contBool - 1, stepList))
-                        print("contBool - 1 = " + str(contBool - 1))
+                        #print("contBool - 1 = " + str(contBool - 1))
                         gCurrent = matches.first
                         temp = list()
                         while gCurrent != None:
                             gstepBoolean = gCurrent.value.boolean
                             gstepLine = gCurrent.value.line
                             gstepComp = gCurrent.value.comp
-                            print("Linea=" + str(gstepLine) + ", Comp=" + str(gstepComp) + ", Booleano=" + str(gstepBoolean))
+                            #print("Linea=" + str(gstepLine) + ", Comp=" + str(gstepComp) + ", Booleano=" + str(gstepBoolean))
                             temp.agregar(stepPassed(gstepLine, gstepComp, gstepBoolean))
                             gCurrent = gCurrent.next
                         reportG.agregar(objectG(contBool - 1, temp))
@@ -864,7 +626,7 @@ def browserSimulation():
     while currentAppend != None:
         valores.append(str(currentAppend.value))
         currentAppend = currentAppend.next
-    ttk.Combobox(tab2, textvariable=data, width=15, values=valores).place(x=20, y=95)
+    ttk.Combobox(tab2, textvariable=data, width=15, values=valores).place(x=20, y=75)
     ttk.Combobox(tab3, textvariable=htmlInOne, values=valores).place(x=55, y=190)
     ttk.Combobox(tab3, textvariable=xmlInOne, values=valores).place(x=325, y=190)
     ttk.Combobox(tab3, textvariable=htmlInTwo, width=25, values=valores).place(x=45, y=320)
@@ -894,7 +656,7 @@ def simulationTable():
             global wrapper1
             wrapper1.destroy()
             wrapper1 = LabelFrame(tab2)
-            wrapper1.pack(fill="both",expand="yes", padx=100, pady=200)
+            wrapper1.pack(fill="both",expand="yes", padx=0, pady=175)
             trv = ttk.Treeview(wrapper1, columns=columnas, show="headings", height="6")
             style = ttk.Style(trv)
             style.configure("Treeview", rowheight=30)
@@ -967,21 +729,18 @@ def simulationTable():
        # print("\n")
 
 def buttonAllReport():
-    lineNum = int(alphaMachine.lineNum)
-    allReport(lineNum, saveCompleteSimulation)
+    allReport(saveCompleteSimulation)
 
 def singleHtmlReport():
     singleProduct = str(htmlInOne.get())
     print(singleProduct)
-    lineNum = int(alphaMachine.lineNum)
-    singleReport(lineNum, singleProduct, saveCompleteSimulation)
+    singleReport(singleProduct, saveCompleteSimulation)
 
 def timeHtmlReport():
     singleProduct = str(htmlInTwo.get())
     second = int(htmlInTwoSec.get())
     print(singleProduct + ", " + str(second))
-    lineNum = int(alphaMachine.lineNum)
-    timeReport(lineNum, singleProduct, second, saveCompleteSimulation)
+    timeReport(singleProduct, second, saveCompleteSimulation)
 
 def updateData():
     nameinput = str(data.get())
@@ -994,8 +753,7 @@ def updateData():
             break
         else:
             mach = mach.next
-    stepsClean = stepsText.replace("p", "")
-    t.Label(tab2, text=stepsClean, width=25, fg="#fcba03", bg ="#010030", font = "Helvetica 14 bold italic").place(x=50, y=450)
+    t.Label(tab2, text=stepsText, width=25, fg="#fcba03", bg ="#010030", font = "Helvetica 14 bold italic").place(x=50, y=450)
 
 def updateSeconds1():
     nameinput = str(htmlInTwo.get())
@@ -1044,14 +802,12 @@ def graphvizReport(name, breakSecond):
         alphaName = alphaCurrent.value.product
         print("alphaName= " + str(alphaName.lower()) + ", name= " + str(name.lower()))
         if alphaName.lower() == name.lower():
-            print("Entra 1")
             current = alphaCurrent.value.objects.first
             while current != None:
                 secondG = current.value.second
                 print("breakSecond= " + str(breakSecond) + ", secondG= " + str(secondG))
                 if int(breakSecond) == int(secondG):
-                    print("Entra 2")
-                    g = graphviz.Digraph('G', filename= str(name) + str(breakSecond) + '.gv')
+                    g = graphviz.Digraph('G', filename= 'reportes/cola/' + str(name) + str(breakSecond) + '.gv')
                     g.attr(label=r'\n' + str(name.upper()) + '\nSegundo = ' + str(breakSecond) + '\nVerde = Ensamblado\nRojo = No ensamblado\n')
                     currentStep = current.value.steps.first
                     tempLine = 0
@@ -1080,6 +836,7 @@ def graphvizReport(name, breakSecond):
                                     tempLine = currentStep.value.line
                                     tempComp = currentStep.value.comp
                                     cont2 = 1
+                                    cont += 1
                                 else:
                                     g.attr('node', shape='box', style='filled', color='green')
                                     g.node('L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
@@ -1101,6 +858,7 @@ def graphvizReport(name, breakSecond):
                                     tempLine = currentStep.value.line
                                     tempComp = currentStep.value.comp
                                     cont2 = 1
+                                    cont += 1
                                 else:
                                     g.attr('node', shape='box', style='filled', color='red')
                                     g.node('L' + str(gstepLine) + 'C' + str(gstepComp), constraint='false')
@@ -1166,14 +924,14 @@ t.Label(tab1, text = "   2021 - Proyecto 2 de Introducción a la programación 2
 t.Label(tab2, text="", width=200, height=36, bg = "#162742").place(x=0, y=0)
 t.Label(tab2, text="Procesos", width=10, fg="#fcba03", bg = "#162742", font = "Helvetica 24 bold italic").place(x=600, y=30)
 data = t.StringVar(tab2)
-t.Button(tab2, width=1, text="⟳", font = "Helvetica 10 bold", bg='#fcba03', command=updateData).place(x=135, y=90)
-t.Label(tab2, text="Productos", width=20, fg="#fcba03", bg = "#162742", font = "Helvetica 12").place(x=-35, y=65)
-t.Label(tab2, width=107, height=26, bg = "#010030").place(x=20, y=130)
-t.Button(tab2, text="Iniciar simulación", width=15, font = "Arial 10", command=simulationTable).place(x=100, y=160)
+t.Button(tab2, width=1, text="⟳", font = "Helvetica 10 bold", bg='#fcba03', command=updateData).place(x=134, y=72)
+t.Label(tab2, text="Productos", width=20, fg="#fcba03", bg = "#162742", font = "Helvetica 12").place(x=-35, y=45)
+t.Label(tab2, width=130, height=27, bg = "#010030").place(x=0, y=110)
+t.Button(tab2, text="Iniciar simulación", width=15, font = "Arial 10", command=simulationTable).place(x=20, y=135)
 t.Label(tab2, text="Segundos:", width=10, fg="#FFFFFF", bg = "#010030", font = "Helvetica 12").place(x=600, y=420)
 liveSeconds = Label(tab2, text = "0", width=4, fg="#fcba03", bg ="#010030", font = "Helvetica 32 bold italic").place(x=610, y=445)
 wrapper1 = LabelFrame(tab2)
-wrapper1.pack(fill="both",expand="yes", padx=100, pady=200)
+wrapper1.pack(fill="both",expand="yes", padx=0, pady=175)
 clockImage = Image.open("images/clock2.png")
 photo = ImageTk.PhotoImage(clockImage)
 clockLabel = Label(tab2, width=50, image=photo, bg = "#010030").place(x=560, y=442)

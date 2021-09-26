@@ -1,11 +1,11 @@
 from tkinter import messagebox
 class allReport:
-    def __init__(self, lineNum, simulation):
-        self.lineNum = lineNum
+    def __init__(self, simulation):
         self.simulation = simulation
 
         simName = str(simulation.name)
         simProd = simulation.products.first
+        numLines = simulation.products.first
 
         html = open("reportes/simulaciones/html/reporteSimulacion_" + simName + ".html", "w")
         html.write("""<!DOCTYPE html>
@@ -64,7 +64,7 @@ class allReport:
                 <div class="col-md-8 offset-md-2">
                     <div class="header-text caption">
                     <h2 style=>Reporte de</h2>
-                    <h1 style="color: white; font-size:120px; text-align: center; font-style: italic; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; text-transform:uppercase">""" + simName + """</h1>
+                    <h1 style="color: white; font-size:120px; text-align: center; font-style: italic; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; text-transform:uppercase">""" + simName + """</h1>
                     </div>
                 </div>
                 </div>
@@ -91,8 +91,16 @@ class allReport:
                             <tr>
                             <th scope="col">Segundo</th>""")
 
-            for i in range(lineNum):
-                    html.write("""<th scope="col">Linea """ + str(i + 1) + """</th>""")
+            while numLines != None:
+                elab2 = numLines.value.elaboration.first
+                while elab2 != None:
+                    currentList2 = elab2.value.stepList.first
+                    while currentList2 != None:
+                        NoLinea2 = str(currentList2.value.lineNum)
+                        html.write("""<th scope="col">Linea """ + str(NoLinea2) + """</th>""")
+                        currentList2 = currentList2.next
+                    break
+                break
 
             html.write("""</tr>
                 </thead>
